@@ -1,5 +1,4 @@
 import { objectType, extendType, nonNull, stringArg } from "nexus";
-// import { Task } from "./Task";
 
 export const Column = objectType({
   name: "Column",

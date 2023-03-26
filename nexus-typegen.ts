@@ -34,7 +34,7 @@ export interface NexusGenObjects {
   }
   Board: { // root type
     authorId?: string | null; // String
-    columns?: NexusGenRootTypes['Column'] | null; // Column
+    columns?: Array<NexusGenRootTypes['Column'] | null> | null; // [Column]
     id?: string | null; // String
     name?: string | null; // String
   }
@@ -72,7 +72,7 @@ export interface NexusGenFieldTypes {
   }
   Board: { // field return type
     authorId: string | null; // String
-    columns: NexusGenRootTypes['Column'] | null; // Column
+    columns: Array<NexusGenRootTypes['Column'] | null> | null; // [Column]
     id: string | null; // String
     name: string | null; // String
   }

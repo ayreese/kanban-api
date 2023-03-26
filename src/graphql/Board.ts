@@ -6,7 +6,7 @@ export const Board = objectType({
     t.string("id");
     t.string("name");
     t.string("authorId");
-    t.field("columns", {
+    t.list.field("columns", {
       type: "Column",
     });
   },

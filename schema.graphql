@@ -9,7 +9,7 @@ type AuthPayload {
 
 type Board {
   authorId: String
-  columns: Column
+  columns: [Column]
   id: String
   name: String
 }
