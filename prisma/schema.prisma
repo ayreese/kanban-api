@@ -41,6 +41,6 @@ model Task {
   id       String @id @default(uuid())
   name     String
   body     String
-  status   Column @relation(fields: [statusId], references: [id])
-  statusId String
+  column   Column @relation(fields: [columnId], references: [id])
+  columnId String
 }

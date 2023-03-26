@@ -18,13 +18,16 @@ type Column {
   boardId: String
   id: String
   name: String
+  tasks: [Task]
 }
 
 type Mutation {
   createBoard(name: String): User
   createColumn(boardId: String, name: String!): Board
+  createTask(body: String, columnId: String, name: String): Column!
   createUser(email: String!, firstName: String!, lastName: String!, password: String!): User!
   deleteBoard(id: String!): Board
+  deleteTask(id: String!): Task
   login(email: String!, password: String!): AuthPayload!
   signUp(email: String!, firstName: String!, lastName: String!, password: String!): AuthPayload!
   updateBoard(id: String!, newName: String!): Board
@@ -36,8 +39,17 @@ type Query {
   boards: [Board!]
   column(id: String): Column
   columns: [Column!]
+  task(id: String!): Task
+  tasks: [Task!]
   user(email: String): User
   users: [User]
+}
+
+type Task {
+  body: String
+  columnId: String
+  id: String
+  name: String
 }
 
 type User {

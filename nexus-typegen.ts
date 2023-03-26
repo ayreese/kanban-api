@@ -42,9 +42,16 @@ export interface NexusGenObjects {
     boardId?: string | null; // String
     id?: string | null; // String
     name?: string | null; // String
+    tasks?: Array<NexusGenRootTypes['Task'] | null> | null; // [Task]
   }
   Mutation: {};
   Query: {};
+  Task: { // root type
+    body?: string | null; // String
+    columnId?: string | null; // String
+    id?: string | null; // String
+    name?: string | null; // String
+  }
   User: { // root type
     boards?: Array<NexusGenRootTypes['Board'] | null> | null; // [Board]
     email?: string | null; // String
@@ -80,12 +87,15 @@ export interface NexusGenFieldTypes {
     boardId: string | null; // String
     id: string | null; // String
     name: string | null; // String
+    tasks: Array<NexusGenRootTypes['Task'] | null> | null; // [Task]
   }
   Mutation: { // field return type
     createBoard: NexusGenRootTypes['User'] | null; // User
     createColumn: NexusGenRootTypes['Board'] | null; // Board
+    createTask: NexusGenRootTypes['Column']; // Column!
     createUser: NexusGenRootTypes['User']; // User!
     deleteBoard: NexusGenRootTypes['Board'] | null; // Board
+    deleteTask: NexusGenRootTypes['Task'] | null; // Task
     login: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signUp: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateBoard: NexusGenRootTypes['Board'] | null; // Board
@@ -96,8 +106,16 @@ export interface NexusGenFieldTypes {
     boards: NexusGenRootTypes['Board'][] | null; // [Board!]
     column: NexusGenRootTypes['Column'] | null; // Column
     columns: NexusGenRootTypes['Column'][] | null; // [Column!]
+    task: NexusGenRootTypes['Task'] | null; // Task
+    tasks: NexusGenRootTypes['Task'][] | null; // [Task!]
     user: NexusGenRootTypes['User'] | null; // User
     users: Array<NexusGenRootTypes['User'] | null> | null; // [User]
+  }
+  Task: { // field return type
+    body: string | null; // String
+    columnId: string | null; // String
+    id: string | null; // String
+    name: string | null; // String
   }
   User: { // field return type
     boards: Array<NexusGenRootTypes['Board'] | null> | null; // [Board]
@@ -124,12 +142,15 @@ export interface NexusGenFieldTypeNames {
     boardId: 'String'
     id: 'String'
     name: 'String'
+    tasks: 'Task'
   }
   Mutation: { // field return type name
     createBoard: 'User'
     createColumn: 'Board'
+    createTask: 'Column'
     createUser: 'User'
     deleteBoard: 'Board'
+    deleteTask: 'Task'
     login: 'AuthPayload'
     signUp: 'AuthPayload'
     updateBoard: 'Board'
@@ -140,8 +161,16 @@ export interface NexusGenFieldTypeNames {
     boards: 'Board'
     column: 'Column'
     columns: 'Column'
+    task: 'Task'
+    tasks: 'Task'
     user: 'User'
     users: 'User'
+  }
+  Task: { // field return type name
+    body: 'String'
+    columnId: 'String'
+    id: 'String'
+    name: 'String'
   }
   User: { // field return type name
     boards: 'Board'
@@ -162,6 +191,11 @@ export interface NexusGenArgTypes {
       boardId?: string | null; // String
       name: string; // String!
     }
+    createTask: { // args
+      body?: string | null; // String
+      columnId?: string | null; // String
+      name?: string | null; // String
+    }
     createUser: { // args
       email: string; // String!
       firstName: string; // String!
@@ -169,6 +203,9 @@ export interface NexusGenArgTypes {
       password: string; // String!
     }
     deleteBoard: { // args
+      id: string; // String!
+    }
+    deleteTask: { // args
       id: string; // String!
     }
     login: { // args
@@ -196,6 +233,9 @@ export interface NexusGenArgTypes {
     }
     column: { // args
       id?: string | null; // String
+    }
+    task: { // args
+      id: string; // String!
     }
     user: { // args
       email?: string | null; // String

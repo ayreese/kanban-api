@@ -77,8 +77,8 @@ export const BoardMutation = extendType({
         id: nonNull(stringArg()),
         newName: nonNull(stringArg()),
       },
-      resolve(parent, args, ctx) {
-        return ctx.db.board.update({
+      resolve(parent, args, { db }) {
+        return db.board.update({
           where: { id: args.id },
           data: {
             name: args.newName,
@@ -91,8 +91,8 @@ export const BoardMutation = extendType({
       args: {
         id: nonNull(stringArg()),
       },
-      resolve(parent, args, ctx) {
-        return ctx.db.board.delete({
+      resolve(parent, args, { db }) {
+        return db.board.delete({
           where: { id: args.id },
         });
       },

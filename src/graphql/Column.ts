@@ -6,6 +6,9 @@ export const Column = objectType({
     t.string("id");
     t.string("name");
     t.string("boardId");
+    t.list.field("tasks", {
+      type: "Task",
+    });
   },
 });
 
