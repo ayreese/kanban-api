@@ -22,14 +22,14 @@ export const AuthMutation = extendType({
         email: nonNull(stringArg()),
         password: nonNull(stringArg()),
       },
-      async resolve(parent, args, { db }) {
+      async resolve(parent, { email, password }, { db }) {
         const user = await db.user.findUnique({
-          where: { email: args.email },
+          where: { email: email },
         });
         if (!user) {
           throw new Error("No such user found");
         }
-        const valid = await bcrypt.compare(args.password, user.password);
+        const valid = await bcrypt.compare(password, user.password);
         if (!valid) {
           throw new Error("Invalid password");
         }
@@ -48,11 +48,10 @@ export const AuthMutation = extendType({
         firstName: nonNull(stringArg()),
         lastName: nonNull(stringArg()),
       },
-      async resolve(parent, args, ctx) {
-        const { firstName, lastName, email } = args;
-        const password = await bcrypt.hash(args.password, 10);
-        const user = await ctx.db.user.create({
-          data: { firstName, lastName, email, password },
+      async resolve(_, { email, password, firstName, lastName }, { db }) {
+        const encryptedPassword = await bcrypt.hash(password, 10);
+        const user = await db.user.create({
+          data: { firstName, lastName, email, password: encryptedPassword },
         });
         const token = jwt.sign({ userId: user.id }, APP_SECRET);
         return {

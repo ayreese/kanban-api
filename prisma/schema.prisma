@@ -24,7 +24,7 @@ model User {
 model Board {
   id       String   @id @default(uuid())
   name     String
-  author   User     @relation(fields: [authorId], references: [id])
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   authorId String
   columns  Column[]
 }
@@ -32,7 +32,7 @@ model Board {
 model Column {
   id      String @id @default(uuid())
   name    String
-  board   Board  @relation(fields: [boardId], references: [id])
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   boardId String
   tasks   Task[]
 }
@@ -41,6 +41,6 @@ model Task {
   id       String @id @default(uuid())
   name     String
   body     String
-  column   Column @relation(fields: [columnId], references: [id])
+  column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   columnId String
 }

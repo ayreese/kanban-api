@@ -20,18 +20,18 @@ export const BoardQuery = extendType({
       args: {
         id: stringArg(),
       },
-      resolve(_root, args, { db }) {
+      resolve(_, { id }, { db }) {
         return db.board.findUnique({
           where: {
-            id: args.id!,
+            id: id!,
           },
         });
       },
     });
     t.list.nonNull.field("boards", {
       type: "Board",
-      resolve(_root, _args, { db }) {
-        return db.board.findMany({});
+      resolve(_, __, { db }) {
+        return db.board.findMany({ include: { columns: true } });
       },
     });
   },
@@ -45,7 +45,7 @@ export const BoardMutation = extendType({
       args: {
         name: stringArg(),
       },
-      resolve(_, args, { db, token }) {
+      resolve(_, { name }, { db, token }) {
         if (!token.userId) {
           return "sign up or login";
         } else {
@@ -56,14 +56,14 @@ export const BoardMutation = extendType({
             data: {
               boards: {
                 create: {
-                  name: args.name,
+                  name: name,
                 },
               },
             },
             include: {
               boards: {
                 where: {
-                  name: args.name,
+                  name: name,
                 },
               },
             },
@@ -74,14 +74,14 @@ export const BoardMutation = extendType({
     t.field("updateBoard", {
       type: "Board",
       args: {
-        id: nonNull(stringArg()),
+        boardId: nonNull(stringArg()),
         newName: nonNull(stringArg()),
       },
-      resolve(parent, args, { db }) {
+      resolve(_, { boardId, newName }, { db }) {
         return db.board.update({
-          where: { id: args.id },
+          where: { id: boardId },
           data: {
-            name: args.newName,
+            name: newName,
           },
         });
       },
@@ -89,11 +89,12 @@ export const BoardMutation = extendType({
     t.field("deleteBoard", {
       type: "Board",
       args: {
-        id: nonNull(stringArg()),
+        boardId: nonNull(stringArg()),
       },
-      resolve(parent, args, { db }) {
+      resolve(_, { boardId }, { db }) {
         return db.board.delete({
-          where: { id: args.id },
+          where: { id: boardId },
+          include: { columns: true },
         });
       },
     });
