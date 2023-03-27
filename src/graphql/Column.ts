@@ -68,5 +68,33 @@ export const ColumnMutation = extendType({
         });
       },
     });
+    t.field("updateColumn", {
+      type: "Column",
+      args: {
+        columnId: nonNull(stringArg()),
+        newName: nonNull(stringArg()),
+      },
+      resolve(_, { columnId, newName }, { db }) {
+        return db.column.update({
+          where: { id: columnId },
+          data: {
+            name: newName,
+          },
+        });
+      },
+    });
+    t.field("deleteColumn", {
+      type: "Column",
+      args: {
+        columnId: stringArg(),
+      },
+      resolve(_, { columnId }, { db }, __) {
+        return db.column.delete({
+          where: {
+            id: columnId,
+          },
+        });
+      },
+    });
   },
 });

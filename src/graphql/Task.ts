@@ -45,7 +45,7 @@ export const TaskMutation = extendType({
         name: stringArg(),
         body: stringArg(),
       },
-      resolve(parent, args, { db }) {
+      resolve(_, args, { db }) {
         const task = {
           name: args.name!,
           body: args.body!,
@@ -68,6 +68,25 @@ export const TaskMutation = extendType({
                 name: args.name,
               },
             },
+          },
+        });
+      },
+    });
+    t.field("updateTask", {
+      type: "Task",
+      args: {
+        taskId: stringArg(),
+        name: stringArg(),
+        body: stringArg(),
+      },
+      resolve(_, { taskId, name, body }, { db }) {
+        return db.task.update({
+          where: {
+            id: taskId,
+          },
+          data: {
+            name: name,
+            body: body,
           },
         });
       },

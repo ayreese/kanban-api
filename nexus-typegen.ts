@@ -95,10 +95,13 @@ export interface NexusGenFieldTypes {
     createTask: NexusGenRootTypes['Column']; // Column!
     createUser: NexusGenRootTypes['User']; // User!
     deleteBoard: NexusGenRootTypes['Board'] | null; // Board
+    deleteColumn: NexusGenRootTypes['Column'] | null; // Column
     deleteTask: NexusGenRootTypes['Task'] | null; // Task
     login: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signUp: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateBoard: NexusGenRootTypes['Board'] | null; // Board
+    updateColumn: NexusGenRootTypes['Column'] | null; // Column
+    updateTask: NexusGenRootTypes['Task'] | null; // Task
     updateUser: NexusGenRootTypes['User']; // User!
   }
   Query: { // field return type
@@ -150,10 +153,13 @@ export interface NexusGenFieldTypeNames {
     createTask: 'Column'
     createUser: 'User'
     deleteBoard: 'Board'
+    deleteColumn: 'Column'
     deleteTask: 'Task'
     login: 'AuthPayload'
     signUp: 'AuthPayload'
     updateBoard: 'Board'
+    updateColumn: 'Column'
+    updateTask: 'Task'
     updateUser: 'User'
   }
   Query: { // field return type name
@@ -205,6 +211,9 @@ export interface NexusGenArgTypes {
     deleteBoard: { // args
       id: string; // String!
     }
+    deleteColumn: { // args
+      columnId?: string | null; // String
+    }
     deleteTask: { // args
       id: string; // String!
     }
@@ -221,6 +230,15 @@ export interface NexusGenArgTypes {
     updateBoard: { // args
       id: string; // String!
       newName: string; // String!
+    }
+    updateColumn: { // args
+      columnId: string; // String!
+      newName: string; // String!
+    }
+    updateTask: { // args
+      body?: string | null; // String
+      name?: string | null; // String
+      taskId?: string | null; // String
     }
     updateUser: { // args
       newEmail: string; // String!
