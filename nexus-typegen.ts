@@ -14,6 +14,10 @@ declare global {
 }
 
 export interface NexusGenInputs {
+  ColumnInputType: { // input type
+    color?: string | null; // String
+    name?: string | null; // String
+  }
 }
 
 export interface NexusGenEnums {
@@ -40,6 +44,7 @@ export interface NexusGenObjects {
   }
   Column: { // root type
     boardId?: string | null; // String
+    color?: string | null; // String
     id?: string | null; // String
     name?: string | null; // String
     tasks?: Array<NexusGenRootTypes['Task'] | null> | null; // [Task]
@@ -85,12 +90,13 @@ export interface NexusGenFieldTypes {
   }
   Column: { // field return type
     boardId: string | null; // String
+    color: string | null; // String
     id: string | null; // String
     name: string | null; // String
     tasks: Array<NexusGenRootTypes['Task'] | null> | null; // [Task]
   }
   Mutation: { // field return type
-    createBoard: NexusGenRootTypes['User'] | null; // User
+    createBoard: NexusGenRootTypes['Board'] | null; // Board
     createColumn: NexusGenRootTypes['Board'] | null; // Board
     createTask: NexusGenRootTypes['Column']; // Column!
     deleteBoard: NexusGenRootTypes['Board'] | null; // Board
@@ -111,6 +117,7 @@ export interface NexusGenFieldTypes {
     task: NexusGenRootTypes['Task'] | null; // Task
     tasks: NexusGenRootTypes['Task'][] | null; // [Task!]
     user: NexusGenRootTypes['User'] | null; // User
+    userBoards: NexusGenRootTypes['Board'][] | null; // [Board!]
     users: Array<NexusGenRootTypes['User'] | null> | null; // [User]
   }
   Task: { // field return type
@@ -142,12 +149,13 @@ export interface NexusGenFieldTypeNames {
   }
   Column: { // field return type name
     boardId: 'String'
+    color: 'String'
     id: 'String'
     name: 'String'
     tasks: 'Task'
   }
   Mutation: { // field return type name
-    createBoard: 'User'
+    createBoard: 'Board'
     createColumn: 'Board'
     createTask: 'Column'
     deleteBoard: 'Board'
@@ -168,6 +176,7 @@ export interface NexusGenFieldTypeNames {
     task: 'Task'
     tasks: 'Task'
     user: 'User'
+    userBoards: 'Board'
     users: 'User'
   }
   Task: { // field return type name
@@ -189,10 +198,12 @@ export interface NexusGenFieldTypeNames {
 export interface NexusGenArgTypes {
   Mutation: {
     createBoard: { // args
+      columns?: Array<NexusGenInputs['ColumnInputType'] | null> | null; // [ColumnInputType]
       name?: string | null; // String
     }
     createColumn: { // args
       boardId?: string | null; // String
+      color: string; // String!
       name: string; // String!
     }
     createTask: { // args
@@ -261,7 +272,7 @@ export interface NexusGenTypeInterfaces {
 
 export type NexusGenObjectNames = keyof NexusGenObjects;
 
-export type NexusGenInputNames = never;
+export type NexusGenInputNames = keyof NexusGenInputs;
 
 export type NexusGenEnumNames = never;
 

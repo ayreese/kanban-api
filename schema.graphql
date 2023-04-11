@@ -16,14 +16,20 @@ type Board {
 
 type Column {
   boardId: String
+  color: String
   id: String
   name: String
   tasks: [Task]
 }
 
+input ColumnInputType {
+  color: String
+  name: String
+}
+
 type Mutation {
-  createBoard(name: String): User
-  createColumn(boardId: String, name: String!): Board
+  createBoard(columns: [ColumnInputType], name: String): Board
+  createColumn(boardId: String, color: String!, name: String!): Board
   createTask(body: String, columnId: String, name: String): Column!
   deleteBoard(boardId: String!): Board
   deleteColumn(columnId: String): Column
@@ -44,6 +50,7 @@ type Query {
   task(id: String!): Task
   tasks: [Task!]
   user(email: String): User
+  userBoards: [Board!]
   users: [User]
 }
 

@@ -1,4 +1,4 @@
-import { objectType, extendType, nonNull, stringArg } from "nexus";
+import { objectType, extendType, nonNull, stringArg, enumType } from "nexus";
 
 export const Column = objectType({
   name: "Column",
@@ -6,6 +6,7 @@ export const Column = objectType({
     t.string("id");
     t.string("name");
     t.string("boardId");
+    t.string("color");
     t.list.field("tasks", {
       type: "Task",
     });
@@ -45,23 +46,25 @@ export const ColumnMutation = extendType({
       args: {
         boardId: stringArg(),
         name: nonNull(stringArg()),
+        color: nonNull(stringArg()),
       },
-      resolve(_, args, { db }) {
+      resolve(_, { boardId, name, color }, { db }) {
         return db.board.update({
           where: {
-            id: args.boardId,
+            id: boardId,
           },
           data: {
             columns: {
               create: {
-                name: args.name,
+                name: name,
+                color: color,
               },
             },
           },
           include: {
             columns: {
               where: {
-                name: args.name,
+                name: name,
               },
             },
           },

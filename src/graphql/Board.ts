@@ -1,4 +1,11 @@
-import { objectType, extendType, nonNull, stringArg } from "nexus";
+import {
+  objectType,
+  extendType,
+  nonNull,
+  stringArg,
+  inputObjectType,
+  list,
+} from "nexus";
 
 export const Board = objectType({
   name: "Board",
@@ -9,6 +16,14 @@ export const Board = objectType({
     t.list.field("columns", {
       type: "Column",
     });
+  },
+});
+
+export const ColumnInputs = inputObjectType({
+  name: "ColumnInputType",
+  definition(t) {
+    t.string("name");
+    t.string("color");
   },
 });
 
@@ -25,6 +40,9 @@ export const BoardQuery = extendType({
           where: {
             id: id!,
           },
+          include: {
+            columns: true,
+          },
         });
       },
     });
@@ -34,6 +52,19 @@ export const BoardQuery = extendType({
         return db.board.findMany({ include: { columns: true } });
       },
     });
+    t.list.nonNull.field("userBoards", {
+      type: "Board",
+      resolve(_, __, { db, token }) {
+        return db.board.findMany({
+          where: {
+            authorId: token.userId,
+          },
+          include: {
+            columns: true,
+          },
+        });
+      },
+    });
   },
 });
 
@@ -41,31 +72,31 @@ export const BoardMutation = extendType({
   type: "Mutation",
   definition(t) {
     t.field("createBoard", {
-      type: "User",
+      type: "Board",
       args: {
         name: stringArg(),
+        columns: list(ColumnInputs),
       },
-      resolve(_, { name }, { db, token }) {
+      resolve(_, { name, columns }, { db, token }) {
         if (!token.userId) {
           return "sign up or login";
         } else {
-          return db.user.update({
-            where: {
-              id: token.userId,
-            },
+          return db.board.create({
             data: {
-              boards: {
-                create: {
-                  name: name,
+              name: name,
+              columns: {
+                createMany: {
+                  data: columns,
+                },
+              },
+              author: {
+                connect: {
+                  id: token.userId,
                 },
               },
             },
             include: {
-              boards: {
-                where: {
-                  name: name,
-                },
-              },
+              columns: true,
             },
           });
         }
