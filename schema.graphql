@@ -29,8 +29,8 @@ input ColumnInputType {
 
 type Mutation {
   createBoard(columns: [ColumnInputType], name: String): Board
-  createColumn(boardId: String, color: String!, name: String!): Board
-  createTask(body: String, columnId: String, name: String): Column!
+  createColumn(boardId: String, color: String!, name: String!): Column
+  createTask(body: String, columnId: String, name: String): Task!
   deleteBoard(boardId: String!): Board
   deleteColumn(columnId: String): Column
   deleteTask(id: String!): Task

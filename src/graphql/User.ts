@@ -28,10 +28,18 @@ export const UserQuery = extendType({
         } else {
           return db.user.findUnique({
             where: {
-              email: email!,
+              id: token.userId!,
             },
             include: {
-              boards: true,
+              boards: {
+                include: {
+                  columns: {
+                    include: {
+                      tasks: true,
+                    },
+                  },
+                },
+              },
             },
           });
         }

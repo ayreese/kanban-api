@@ -97,8 +97,8 @@ export interface NexusGenFieldTypes {
   }
   Mutation: { // field return type
     createBoard: NexusGenRootTypes['Board'] | null; // Board
-    createColumn: NexusGenRootTypes['Board'] | null; // Board
-    createTask: NexusGenRootTypes['Column']; // Column!
+    createColumn: NexusGenRootTypes['Column'] | null; // Column
+    createTask: NexusGenRootTypes['Task']; // Task!
     deleteBoard: NexusGenRootTypes['Board'] | null; // Board
     deleteColumn: NexusGenRootTypes['Column'] | null; // Column
     deleteTask: NexusGenRootTypes['Task'] | null; // Task
@@ -156,8 +156,8 @@ export interface NexusGenFieldTypeNames {
   }
   Mutation: { // field return type name
     createBoard: 'Board'
-    createColumn: 'Board'
-    createTask: 'Column'
+    createColumn: 'Column'
+    createTask: 'Task'
     deleteBoard: 'Board'
     deleteColumn: 'Column'
     deleteTask: 'Task'

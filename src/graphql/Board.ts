@@ -60,7 +60,11 @@ export const BoardQuery = extendType({
             authorId: token.userId,
           },
           include: {
-            columns: true,
+            columns: {
+              include: {
+                tasks: true,
+              },
+            },
           },
         });
       },
@@ -96,7 +100,11 @@ export const BoardMutation = extendType({
               },
             },
             include: {
-              columns: true,
+              columns: {
+                include: {
+                  tasks: true,
+                },
+              },
             },
           });
         }

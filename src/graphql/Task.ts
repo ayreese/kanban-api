@@ -39,37 +39,36 @@ export const TaskMutation = extendType({
   type: "Mutation",
   definition(t) {
     t.nonNull.field("createTask", {
-      type: "Column",
+      type: "Task",
       args: {
         columnId: stringArg(),
         name: stringArg(),
         body: stringArg(),
       },
-      resolve(_, args, { db }) {
-        const task = {
-          name: args.name!,
-          body: args.body!,
-        };
-        return db.column.update({
-          where: {
-            id: args.columnId,
-          },
-          data: {
-            tasks: {
-              create: {
-                name: args.name,
-                body: args.body,
+      resolve(_, { columnId, name, body }, { db, token }) {
+        if (!token.userId) {
+          return "sign up or login";
+        } else {
+          return db.task.create({
+            data: {
+              name: name,
+              body: body,
+              // subtask: {
+              //   createMany: {
+              //     data: columns,
+              //   },
+              // },
+              column: {
+                connect: {
+                  id: columnId,
+                },
               },
             },
-          },
-          include: {
-            tasks: {
-              where: {
-                name: args.name,
-              },
-            },
-          },
-        });
+            // include: {
+            //   subtask: true,
+            // },
+          });
+        }
       },
     });
     t.field("updateTask", {

@@ -26,6 +26,9 @@ export const ColumnQuery = extendType({
           where: {
             id: args.id!,
           },
+          include: {
+            tasks: true,
+          },
         });
       },
     });
@@ -42,33 +45,31 @@ export const ColumnMutation = extendType({
   type: "Mutation",
   definition(t) {
     t.field("createColumn", {
-      type: "Board",
+      type: "Column",
       args: {
         boardId: stringArg(),
         name: nonNull(stringArg()),
         color: nonNull(stringArg()),
       },
-      resolve(_, { boardId, name, color }, { db }) {
-        return db.board.update({
-          where: {
-            id: boardId,
-          },
-          data: {
-            columns: {
-              create: {
-                name: name,
-                color: color,
+      resolve(_, { boardId, name, color }, { db, token }) {
+        if (!token.userId) {
+          return "sign up or login";
+        } else {
+          return db.column.create({
+            data: {
+              name: name,
+              color: color,
+              board: {
+                connect: {
+                  id: boardId,
+                },
               },
             },
-          },
-          include: {
-            columns: {
-              where: {
-                name: name,
-              },
+            include: {
+              tasks: true,
             },
-          },
-        });
+          });
+        }
       },
     });
     t.field("updateColumn", {
