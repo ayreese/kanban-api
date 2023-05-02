@@ -35,7 +35,9 @@ export const UserQuery = extendType({
                 include: {
                   columns: {
                     include: {
-                      tasks: true,
+                      tasks: {
+                        subtasks: true,
+                      },
                     },
                   },
                 },

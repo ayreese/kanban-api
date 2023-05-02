@@ -22,6 +22,7 @@ export const Board = objectType({
 export const ColumnInputs = inputObjectType({
   name: "ColumnInputType",
   definition(t) {
+    t.string("id");
     t.string("name");
     t.string("color");
   },
@@ -62,7 +63,11 @@ export const BoardQuery = extendType({
           include: {
             columns: {
               include: {
-                tasks: true,
+                tasks: {
+                  include: {
+                    subtasks: true,
+                  },
+                },
               },
             },
           },
@@ -102,7 +107,11 @@ export const BoardMutation = extendType({
             include: {
               columns: {
                 include: {
-                  tasks: true,
+                  tasks: {
+                    include: {
+                      subtasks: true,
+                    },
+                  },
                 },
               },
             },
@@ -115,12 +124,44 @@ export const BoardMutation = extendType({
       args: {
         boardId: nonNull(stringArg()),
         newName: nonNull(stringArg()),
+        columns: list(ColumnInputs),
       },
-      resolve(_, { boardId, newName }, { db }) {
+      resolve(_, { boardId, newName, columns }, { db }) {
+        const updateColumns: any = [];
+        const createColumns: any = [];
+
+        const columnsToUpdate = columns?.forEach((column) => {
+          if (column?.id) {
+            const newObj = {
+              where: { id: column.id },
+              data: {
+                name: column.name,
+                color: column.color,
+              },
+            };
+            updateColumns.push(newObj);
+          } else createColumns.push(column);
+        });
+
         return db.board.update({
           where: { id: boardId },
           data: {
             name: newName,
+            columns: {
+              create: createColumns,
+              update: updateColumns,
+            },
+          },
+          include: {
+            columns: {
+              include: {
+                tasks: {
+                  include: {
+                    subtasks: true,
+                  },
+                },
+              },
+            },
           },
         });
       },

@@ -45,7 +45,7 @@ export const ColumnMutation = extendType({
   type: "Mutation",
   definition(t) {
     t.field("createColumn", {
-      type: "Column",
+      type: "Board",
       args: {
         boardId: stringArg(),
         name: nonNull(stringArg()),
@@ -55,23 +55,57 @@ export const ColumnMutation = extendType({
         if (!token.userId) {
           return "sign up or login";
         } else {
-          return db.column.create({
+          return db.board.update({
+            where: {
+              id: boardId,
+            },
             data: {
-              name: name,
-              color: color,
-              board: {
-                connect: {
-                  id: boardId,
+              columns: {
+                create: {
+                  name: name,
+                  color: color,
                 },
               },
             },
             include: {
-              tasks: true,
+              columns: {
+                include: {
+                  tasks: true,
+                },
+              },
             },
           });
         }
       },
     });
+    // t.field("createColumn", {
+    //   type: "Column",
+    //   args: {
+    //     boardId: stringArg(),
+    //     name: nonNull(stringArg()),
+    //     color: nonNull(stringArg()),
+    //   },
+    //   resolve(_, { boardId, name, color }, { db, token }) {
+    //     if (!token.userId) {
+    //       return "sign up or login";
+    //     } else {
+    //       return db.column.create({
+    //         data: {
+    //           name: name,
+    //           color: color,
+    //           board: {
+    //             connect: {
+    //               id: boardId,
+    //             },
+    //           },
+    //         },
+    //         include: {
+    //           tasks: true,
+    //         },
+    //       });
+    //     }
+    //   },
+    // });
     t.field("updateColumn", {
       type: "Column",
       args: {
@@ -88,14 +122,33 @@ export const ColumnMutation = extendType({
       },
     });
     t.field("deleteColumn", {
-      type: "Column",
+      type: "Board",
       args: {
+        boardId: stringArg(),
         columnId: stringArg(),
       },
-      resolve(_, { columnId }, { db }, __) {
-        return db.column.delete({
+      resolve(_, { boardId, columnId }, { db }, __) {
+        return db.board.update({
           where: {
-            id: columnId,
+            id: boardId,
+          },
+          data: {
+            columns: {
+              delete: {
+                id: columnId,
+              },
+            },
+          },
+          include: {
+            columns: {
+              include: {
+                tasks: {
+                  include: {
+                    subtasks: true,
+                  },
+                },
+              },
+            },
           },
         });
       },

@@ -39,9 +39,18 @@ model Column {
 }
 
 model Task {
-  id       String @id @default(uuid())
+  id       String    @id @default(uuid())
   name     String
   body     String
-  column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  column   Column    @relation(fields: [columnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   columnId String
+  subtasks Subtask[]
+}
+
+model Subtask {
+  id     String @id @default(uuid())
+  body   String
+  status String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  taskId String
 }

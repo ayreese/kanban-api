@@ -16,11 +16,18 @@ declare global {
 export interface NexusGenInputs {
   ColumnInputType: { // input type
     color?: string | null; // String
+    id?: string | null; // String
     name?: string | null; // String
+  }
+  SubtaskInputType: { // input type
+    body?: string | null; // String
+    id?: string | null; // String
+    status?: NexusGenEnums['Status'] | null; // Status
   }
 }
 
 export interface NexusGenEnums {
+  Status: "complete" | "incomplete"
 }
 
 export interface NexusGenScalars {
@@ -51,11 +58,18 @@ export interface NexusGenObjects {
   }
   Mutation: {};
   Query: {};
+  Subtask: { // root type
+    body?: string | null; // String
+    id?: string | null; // String
+    status?: NexusGenEnums['Status'] | null; // Status
+    taskId?: string | null; // String
+  }
   Task: { // root type
     body?: string | null; // String
     columnId?: string | null; // String
     id?: string | null; // String
     name?: string | null; // String
+    subtasks?: Array<NexusGenRootTypes['Subtask'] | null> | null; // [Subtask]
   }
   User: { // root type
     boards?: Array<NexusGenRootTypes['Board'] | null> | null; // [Board]
@@ -75,7 +89,7 @@ export interface NexusGenUnions {
 
 export type NexusGenRootTypes = NexusGenObjects
 
-export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars
+export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars & NexusGenEnums
 
 export interface NexusGenFieldTypes {
   AuthPayload: { // field return type
@@ -97,16 +111,18 @@ export interface NexusGenFieldTypes {
   }
   Mutation: { // field return type
     createBoard: NexusGenRootTypes['Board'] | null; // Board
-    createColumn: NexusGenRootTypes['Column'] | null; // Column
-    createTask: NexusGenRootTypes['Task']; // Task!
+    createColumn: NexusGenRootTypes['Board'] | null; // Board
+    createSubtask: NexusGenRootTypes['Subtask']; // Subtask!
+    createTask: NexusGenRootTypes['Board']; // Board!
     deleteBoard: NexusGenRootTypes['Board'] | null; // Board
-    deleteColumn: NexusGenRootTypes['Column'] | null; // Column
-    deleteTask: NexusGenRootTypes['Task'] | null; // Task
+    deleteColumn: NexusGenRootTypes['Board'] | null; // Board
+    deleteTask: NexusGenRootTypes['Board'] | null; // Board
     login: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signUp: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateBoard: NexusGenRootTypes['Board'] | null; // Board
     updateColumn: NexusGenRootTypes['Column'] | null; // Column
-    updateTask: NexusGenRootTypes['Task'] | null; // Task
+    updateSubtask: NexusGenRootTypes['Subtask'] | null; // Subtask
+    updateTask: NexusGenRootTypes['Board'] | null; // Board
     updateUser: NexusGenRootTypes['User']; // User!
   }
   Query: { // field return type
@@ -114,17 +130,26 @@ export interface NexusGenFieldTypes {
     boards: NexusGenRootTypes['Board'][] | null; // [Board!]
     column: NexusGenRootTypes['Column'] | null; // Column
     columns: NexusGenRootTypes['Column'][] | null; // [Column!]
+    subtask: NexusGenRootTypes['Subtask'] | null; // Subtask
+    subtasks: NexusGenRootTypes['Subtask'][] | null; // [Subtask!]
     task: NexusGenRootTypes['Task'] | null; // Task
     tasks: NexusGenRootTypes['Task'][] | null; // [Task!]
     user: NexusGenRootTypes['User'] | null; // User
     userBoards: NexusGenRootTypes['Board'][] | null; // [Board!]
     users: Array<NexusGenRootTypes['User'] | null> | null; // [User]
   }
+  Subtask: { // field return type
+    body: string | null; // String
+    id: string | null; // String
+    status: NexusGenEnums['Status'] | null; // Status
+    taskId: string | null; // String
+  }
   Task: { // field return type
     body: string | null; // String
     columnId: string | null; // String
     id: string | null; // String
     name: string | null; // String
+    subtasks: Array<NexusGenRootTypes['Subtask'] | null> | null; // [Subtask]
   }
   User: { // field return type
     boards: Array<NexusGenRootTypes['Board'] | null> | null; // [Board]
@@ -156,16 +181,18 @@ export interface NexusGenFieldTypeNames {
   }
   Mutation: { // field return type name
     createBoard: 'Board'
-    createColumn: 'Column'
-    createTask: 'Task'
+    createColumn: 'Board'
+    createSubtask: 'Subtask'
+    createTask: 'Board'
     deleteBoard: 'Board'
-    deleteColumn: 'Column'
-    deleteTask: 'Task'
+    deleteColumn: 'Board'
+    deleteTask: 'Board'
     login: 'AuthPayload'
     signUp: 'AuthPayload'
     updateBoard: 'Board'
     updateColumn: 'Column'
-    updateTask: 'Task'
+    updateSubtask: 'Subtask'
+    updateTask: 'Board'
     updateUser: 'User'
   }
   Query: { // field return type name
@@ -173,17 +200,26 @@ export interface NexusGenFieldTypeNames {
     boards: 'Board'
     column: 'Column'
     columns: 'Column'
+    subtask: 'Subtask'
+    subtasks: 'Subtask'
     task: 'Task'
     tasks: 'Task'
     user: 'User'
     userBoards: 'Board'
     users: 'User'
   }
+  Subtask: { // field return type name
+    body: 'String'
+    id: 'String'
+    status: 'Status'
+    taskId: 'String'
+  }
   Task: { // field return type name
     body: 'String'
     columnId: 'String'
     id: 'String'
     name: 'String'
+    subtasks: 'Subtask'
   }
   User: { // field return type name
     boards: 'Board'
@@ -206,19 +242,29 @@ export interface NexusGenArgTypes {
       color: string; // String!
       name: string; // String!
     }
+    createSubtask: { // args
+      body?: string | null; // String
+      status?: NexusGenEnums['Status'] | null; // Status
+      taskId?: string | null; // String
+    }
     createTask: { // args
+      boardId?: string | null; // String
       body?: string | null; // String
       columnId?: string | null; // String
       name?: string | null; // String
+      subtasks?: Array<NexusGenInputs['SubtaskInputType'] | null> | null; // [SubtaskInputType]
     }
     deleteBoard: { // args
       boardId: string; // String!
     }
     deleteColumn: { // args
+      boardId?: string | null; // String
       columnId?: string | null; // String
     }
     deleteTask: { // args
-      id: string; // String!
+      boardId?: string | null; // String
+      columnId?: string | null; // String
+      taskId: string; // String!
     }
     login: { // args
       email: string; // String!
@@ -232,15 +278,23 @@ export interface NexusGenArgTypes {
     }
     updateBoard: { // args
       boardId: string; // String!
+      columns?: Array<NexusGenInputs['ColumnInputType'] | null> | null; // [ColumnInputType]
       newName: string; // String!
     }
     updateColumn: { // args
       columnId: string; // String!
       newName: string; // String!
     }
+    updateSubtask: { // args
+      status?: NexusGenEnums['Status'] | null; // Status
+      subtaskId?: string | null; // String
+    }
     updateTask: { // args
+      boardId?: string | null; // String
       body?: string | null; // String
+      columnId?: string | null; // String
       name?: string | null; // String
+      subtasks?: Array<NexusGenInputs['SubtaskInputType'] | null> | null; // [SubtaskInputType]
       taskId?: string | null; // String
     }
     updateUser: { // args
@@ -254,6 +308,12 @@ export interface NexusGenArgTypes {
     }
     column: { // args
       id?: string | null; // String
+    }
+    subtask: { // args
+      id: string; // String!
+    }
+    subtasks: { // args
+      taskId: string; // String!
     }
     task: { // args
       id: string; // String!
@@ -274,7 +334,7 @@ export type NexusGenObjectNames = keyof NexusGenObjects;
 
 export type NexusGenInputNames = keyof NexusGenInputs;
 
-export type NexusGenEnumNames = never;
+export type NexusGenEnumNames = keyof NexusGenEnums;
 
 export type NexusGenInterfaceNames = never;
 
