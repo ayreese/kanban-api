@@ -116,12 +116,13 @@ export interface NexusGenFieldTypes {
     createTask: NexusGenRootTypes['Board']; // Board!
     deleteBoard: NexusGenRootTypes['Board'] | null; // Board
     deleteColumn: NexusGenRootTypes['Board'] | null; // Board
+    deleteSubtask: NexusGenRootTypes['Board'] | null; // Board
     deleteTask: NexusGenRootTypes['Board'] | null; // Board
     login: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signUp: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateBoard: NexusGenRootTypes['Board'] | null; // Board
     updateColumn: NexusGenRootTypes['Column'] | null; // Column
-    updateSubtask: NexusGenRootTypes['Subtask'] | null; // Subtask
+    updateSubtask: NexusGenRootTypes['Board'] | null; // Board
     updateTask: NexusGenRootTypes['Board'] | null; // Board
     updateUser: NexusGenRootTypes['User']; // User!
   }
@@ -186,12 +187,13 @@ export interface NexusGenFieldTypeNames {
     createTask: 'Board'
     deleteBoard: 'Board'
     deleteColumn: 'Board'
+    deleteSubtask: 'Board'
     deleteTask: 'Board'
     login: 'AuthPayload'
     signUp: 'AuthPayload'
     updateBoard: 'Board'
     updateColumn: 'Column'
-    updateSubtask: 'Subtask'
+    updateSubtask: 'Board'
     updateTask: 'Board'
     updateUser: 'User'
   }
@@ -261,6 +263,12 @@ export interface NexusGenArgTypes {
       boardId?: string | null; // String
       columnId?: string | null; // String
     }
+    deleteSubtask: { // args
+      boardId?: string | null; // String
+      columnId?: string | null; // String
+      subtaskId?: string | null; // String
+      taskId?: string | null; // String
+    }
     deleteTask: { // args
       boardId?: string | null; // String
       columnId?: string | null; // String
@@ -286,8 +294,11 @@ export interface NexusGenArgTypes {
       newName: string; // String!
     }
     updateSubtask: { // args
+      boardId?: string | null; // String
+      columnId?: string | null; // String
       status?: NexusGenEnums['Status'] | null; // Status
       subtaskId?: string | null; // String
+      taskId?: string | null; // String
     }
     updateTask: { // args
       boardId?: string | null; // String

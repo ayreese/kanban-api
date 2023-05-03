@@ -96,18 +96,157 @@ export const subTaskMutation = extendType({
       },
     });
     t.field("updateSubtask", {
-      type: "Subtask",
+      type: "Board",
       args: {
+        boardId: stringArg(),
+        columnId: stringArg(),
+        taskId: stringArg(),
         subtaskId: stringArg(),
         status: StatusEnum,
       },
-      resolve(_, { subtaskId, status }, { db }) {
-        return db.subtask.update({
-          where: {
-            id: subtaskId,
-          },
+      resolve: async (
+        _,
+        { boardId, columnId, taskId, subtaskId, status },
+        { db },
+      ) => {
+        const updatedBoard = await db.board.update({
+          where: { id: boardId },
           data: {
-            status: status,
+            columns: {
+              update: {
+                where: { id: columnId },
+                data: {
+                  tasks: {
+                    update: {
+                      where: { id: taskId },
+                      data: {
+                        subtasks: {
+                          update: {
+                            where: { id: subtaskId },
+                            data: { status },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          include: {
+            columns: {
+              include: {
+                tasks: {
+                  include: {
+                    subtasks: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+        return updatedBoard;
+      },
+    });
+
+    // t.field("updateSubtask", {
+    //   type: "Board",
+    //   args: {
+    //     boardId: stringArg(),
+    //     columnId: stringArg(),
+    //     taskId: stringArg(),
+    //     subtaskId: stringArg(),
+    //     status: StatusEnum,
+    //   },
+    //   resolve(_, { boardId, columnId, taskId, subtaskId, status }, { db }) {
+    //     return db.board.update({
+    //       where: { id: boardId },
+    //       data: {
+    //         columns: {
+    //           update: {
+    //             where: {
+    //               id: columnId,
+    //             },
+    //             data: {
+    //               tasks: {
+    //                 update: {
+    //                   where: {
+    //                     id: taskId,
+    //                   },
+    //                   subtasks: {
+    //                     where: {
+    //                       id: subtaskId,
+    //                     },
+    //                     data: {
+    //                       status: status,
+    //                     },
+    //                   },
+    //                 },
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //       include: {
+    //         columns: {
+    //           include: {
+    //             tasks: {
+    //               include: {
+    //                 subtasks: true,
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     });
+    //   },
+    // });
+    t.field("deleteSubtask", {
+      type: "Board",
+      args: {
+        boardId: stringArg(),
+        columnId: stringArg(),
+        taskId: stringArg(),
+        subtaskId: stringArg(),
+      },
+      resolve(_, { boardId, columnId, taskId, subtaskId }, { db }) {
+        return db.board.update({
+          where: { id: boardId },
+          data: {
+            columns: {
+              update: {
+                where: {
+                  id: columnId,
+                },
+                data: {
+                  tasks: {
+                    update: {
+                      where: {
+                        id: taskId,
+                      },
+                      data: {
+                        subtasks: {
+                          delete: {
+                            id: subtaskId,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          include: {
+            columns: {
+              include: {
+                tasks: {
+                  include: {
+                    subtasks: true,
+                  },
+                },
+              },
+            },
           },
         });
       },

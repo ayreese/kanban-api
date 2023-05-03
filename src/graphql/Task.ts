@@ -122,7 +122,11 @@ export const TaskMutation = extendType({
         body: stringArg(),
         subtasks: list(SubtaskInputs),
       },
-      resolve(_, { boardId, columnId, taskId, name, body, subtasks }, { db }) {
+      async resolve(
+        _,
+        { boardId, columnId, taskId, name, body, subtasks },
+        { db },
+      ) {
         const updateSubtasks: any = [];
         const createSubtasks: any = [];
 
@@ -138,7 +142,19 @@ export const TaskMutation = extendType({
             updateSubtasks.push(newObj);
           } else createSubtasks.push(subtask);
         });
-        return db.board.update({
+        await db.column.update({
+          where: {
+            id: columnId,
+          },
+          data: {
+            tasks: {
+              connect: {
+                id: taskId,
+              },
+            },
+          },
+        });
+        return await db.board.update({
           where: { id: boardId },
           data: {
             columns: {
@@ -180,6 +196,7 @@ export const TaskMutation = extendType({
         });
       },
     });
+
     t.field("deleteTask", {
       type: "Board",
       args: {

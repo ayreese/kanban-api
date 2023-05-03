@@ -35,12 +35,13 @@ type Mutation {
   createTask(boardId: String, body: String, columnId: String, name: String, subtasks: [SubtaskInputType]): Board!
   deleteBoard(boardId: String!): Board
   deleteColumn(boardId: String, columnId: String): Board
+  deleteSubtask(boardId: String, columnId: String, subtaskId: String, taskId: String): Board
   deleteTask(boardId: String, columnId: String, taskId: String!): Board
   login(email: String!, password: String!): AuthPayload!
   signUp(email: String!, firstName: String!, lastName: String!, password: String!): AuthPayload!
   updateBoard(boardId: String!, columns: [ColumnInputType], newName: String!): Board
   updateColumn(columnId: String!, newName: String!): Column
-  updateSubtask(status: Status, subtaskId: String): Subtask
+  updateSubtask(boardId: String, columnId: String, status: Status, subtaskId: String, taskId: String): Board
   updateTask(boardId: String, body: String, columnId: String, name: String, subtasks: [SubtaskInputType], taskId: String): Board
   updateUser(email: String!, password: String!): User!
 }
