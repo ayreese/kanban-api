@@ -7,8 +7,7 @@
     "start": "dist/src/index.js",
     "dev": "ts-node-dev --transpile-only --no-notify src/index.ts",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "heroku-postbuild": "npm run build && chmod +x dist/index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
