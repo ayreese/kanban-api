@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --transpile-only --no-notify src/index.ts",
+    "start": "ts-node-dev --transpile-only --no-notify src/index.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@apollo/server": "^4.5.0",
+    "@apollo/server": "^4.7.1",
     "@prisma/client": "^4.11.0",
     "bcryptjs": "^2.4.3",
     "graphql": "^16.6.0",
@@ -21,10 +21,12 @@
     "prettier": "^2.8.4"
   },
   "devDependencies": {
+    "@apollo/rover": "^0.14.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^18.15.3",
     "prisma": "^4.11.0",
+    "serverless-plugin-typescript": "^2.1.4",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.2"
   }

@@ -6,7 +6,7 @@ import { decodeAuthHeader, AuthTokenPayload } from "./utils/auth";
 
 const server = new ApolloServer({ schema });
 const port = Number.parseInt(process.env.PORT!) || 4000;
-const ready = async () => {
+const start = async () => {
   const { url } = await startStandaloneServer(server, {
     context: async ({ req, res }) => ({
       db: db,
@@ -20,4 +20,4 @@ const ready = async () => {
   console.log(`🚀  Server ready at: ${url}`);
 };
 
-ready();
+start();
