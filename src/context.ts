@@ -19,6 +19,3 @@ export const getToken = ({ req }: { req?: Request }): Context => {
   };
 };
 
-// export const context = {
-//   db,
-// };
