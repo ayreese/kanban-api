@@ -4,7 +4,7 @@
   "description": "GraphQL API for the Kanban Task Management App",
   "main": "dist/src/index.js",
   "engines": {
-    "node": ">=20.12"
+    "node": "22.x"
   },
   "scripts": {
     "start": "node dist/src/index.js",

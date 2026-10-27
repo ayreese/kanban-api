@@ -5,7 +5,7 @@ Built with Apollo Server 4, Nexus and Prisma on Postgres.
 
 ## Requirements
 
-- Node.js 20.12 or newer
+- Node.js 22 (pinned in `.node-version`; Node 25+ breaks `jsonwebtoken`)
 - A Postgres database (local, Docker, or hosted, e.g. Neon, Supabase, Railway)
 
 ## Run locally
