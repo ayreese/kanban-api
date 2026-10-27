@@ -77,7 +77,6 @@ export interface NexusGenObjects {
     firstName?: string | null; // String
     id?: string | null; // String
     lastName?: string | null; // String
-    password?: string | null; // String
   }
 }
 
@@ -137,7 +136,6 @@ export interface NexusGenFieldTypes {
     tasks: NexusGenRootTypes['Task'][] | null; // [Task!]
     user: NexusGenRootTypes['User'] | null; // User
     userBoards: NexusGenRootTypes['Board'][] | null; // [Board!]
-    users: Array<NexusGenRootTypes['User'] | null> | null; // [User]
   }
   Subtask: { // field return type
     body: string | null; // String
@@ -158,7 +156,6 @@ export interface NexusGenFieldTypes {
     firstName: string | null; // String
     id: string | null; // String
     lastName: string | null; // String
-    password: string | null; // String
   }
 }
 
@@ -208,7 +205,6 @@ export interface NexusGenFieldTypeNames {
     tasks: 'Task'
     user: 'User'
     userBoards: 'Board'
-    users: 'User'
   }
   Subtask: { // field return type name
     body: 'String'
@@ -229,7 +225,6 @@ export interface NexusGenFieldTypeNames {
     firstName: 'String'
     id: 'String'
     lastName: 'String'
-    password: 'String'
   }
 }
 

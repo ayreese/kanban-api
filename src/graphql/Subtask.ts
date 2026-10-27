@@ -6,6 +6,8 @@ import {
   enumType,
   arg,
 } from "nexus";
+import { requireUser, assertBoardOwner, assertTaskOwner } from "../utils/guards";
+import { fullBoard } from "./includes";
 
 export const StatusEnum = enumType({
   name: "Status",
@@ -27,6 +29,10 @@ export const Subtask = objectType({
   },
 });
 
+const ownedBy = (userId: string) => ({
+  task: { column: { board: { authorId: userId } } },
+});
+
 export const SubtaskQuery = extendType({
   type: "Query",
   definition(t) {
@@ -35,16 +41,9 @@ export const SubtaskQuery = extendType({
       args: {
         id: nonNull(stringArg()),
       },
-      resolve(_root, args, { db, token }) {
-        if (!token.userId) {
-          return "sign up or login";
-        } else {
-          return db.subtask.findUnique({
-            where: {
-              id: args.id,
-            },
-          });
-        }
+      resolve(_root, { id }, { db, token }) {
+        const userId = requireUser(token);
+        return db.subtask.findFirst({ where: { id, ...ownedBy(userId) } });
       },
     });
     t.list.nonNull.field("subtasks", {
@@ -53,15 +52,8 @@ export const SubtaskQuery = extendType({
         taskId: nonNull(stringArg()),
       },
       resolve(_root, { taskId }, { db, token }) {
-        if (!token.userId) {
-          return "sign up or login";
-        } else {
-          return db.subtask.findMany({
-            where: {
-              taskId: taskId,
-            },
-          });
-        }
+        const userId = requireUser(token);
+        return db.subtask.findMany({ where: { taskId, ...ownedBy(userId) } });
       },
     });
   },
@@ -77,22 +69,16 @@ export const subTaskMutation = extendType({
         body: stringArg(),
         status: arg({ type: StatusEnum }),
       },
-      resolve(_, { taskId, body }, { db, token }) {
-        if (!token.userId) {
-          return "sign up or login";
-        } else {
-          return db.subtask.create({
-            data: {
-              body: body,
-              status: "incomplete",
-              task: {
-                connect: {
-                  id: taskId,
-                },
-              },
-            },
-          });
-        }
+      async resolve(_, { taskId, body, status }, { db, token }) {
+        const userId = requireUser(token);
+        await assertTaskOwner(db, taskId, userId);
+        return db.subtask.create({
+          data: {
+            body: body ?? "",
+            status: status ?? "incomplete",
+            task: { connect: { id: taskId! } },
+          },
+        });
       },
     });
     t.field("updateSubtask", {
@@ -104,26 +90,28 @@ export const subTaskMutation = extendType({
         subtaskId: stringArg(),
         status: StatusEnum,
       },
-      resolve: async (
+      async resolve(
         _,
         { boardId, columnId, taskId, subtaskId, status },
-        { db },
-      ) => {
-        const updatedBoard = await db.board.update({
-          where: { id: boardId },
+        { db, token },
+      ) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
+        return db.board.update({
+          where: { id: boardId! },
           data: {
             columns: {
               update: {
-                where: { id: columnId },
+                where: { id: columnId! },
                 data: {
                   tasks: {
                     update: {
-                      where: { id: taskId },
+                      where: { id: taskId! },
                       data: {
                         subtasks: {
                           update: {
-                            where: { id: subtaskId },
-                            data: { status },
+                            where: { id: subtaskId! },
+                            data: { status: status ?? undefined },
                           },
                         },
                       },
@@ -133,74 +121,10 @@ export const subTaskMutation = extendType({
               },
             },
           },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          include: fullBoard,
         });
-        return updatedBoard;
       },
     });
-
-    // t.field("updateSubtask", {
-    //   type: "Board",
-    //   args: {
-    //     boardId: stringArg(),
-    //     columnId: stringArg(),
-    //     taskId: stringArg(),
-    //     subtaskId: stringArg(),
-    //     status: StatusEnum,
-    //   },
-    //   resolve(_, { boardId, columnId, taskId, subtaskId, status }, { db }) {
-    //     return db.board.update({
-    //       where: { id: boardId },
-    //       data: {
-    //         columns: {
-    //           update: {
-    //             where: {
-    //               id: columnId,
-    //             },
-    //             data: {
-    //               tasks: {
-    //                 update: {
-    //                   where: {
-    //                     id: taskId,
-    //                   },
-    //                   subtasks: {
-    //                     where: {
-    //                       id: subtaskId,
-    //                     },
-    //                     data: {
-    //                       status: status,
-    //                     },
-    //                   },
-    //                 },
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //       include: {
-    //         columns: {
-    //           include: {
-    //             tasks: {
-    //               include: {
-    //                 subtasks: true,
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     });
-    //   },
-    // });
     t.field("deleteSubtask", {
       type: "Board",
       args: {
@@ -209,27 +133,25 @@ export const subTaskMutation = extendType({
         taskId: stringArg(),
         subtaskId: stringArg(),
       },
-      resolve(_, { boardId, columnId, taskId, subtaskId }, { db }) {
+      async resolve(
+        _,
+        { boardId, columnId, taskId, subtaskId },
+        { db, token },
+      ) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
         return db.board.update({
-          where: { id: boardId },
+          where: { id: boardId! },
           data: {
             columns: {
               update: {
-                where: {
-                  id: columnId,
-                },
+                where: { id: columnId! },
                 data: {
                   tasks: {
                     update: {
-                      where: {
-                        id: taskId,
-                      },
+                      where: { id: taskId! },
                       data: {
-                        subtasks: {
-                          delete: {
-                            id: subtaskId,
-                          },
-                        },
+                        subtasks: { delete: { id: subtaskId! } },
                       },
                     },
                   },
@@ -237,17 +159,7 @@ export const subTaskMutation = extendType({
               },
             },
           },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          include: fullBoard,
         });
       },
     });

@@ -1,4 +1,10 @@
-import { objectType, extendType, nonNull, stringArg, enumType } from "nexus";
+import { objectType, extendType, nonNull, stringArg } from "nexus";
+import {
+  requireUser,
+  assertBoardOwner,
+  assertColumnOwner,
+} from "../utils/guards";
+import { fullBoard } from "./includes";
 
 export const Column = objectType({
   name: "Column",
@@ -21,21 +27,21 @@ export const ColumnQuery = extendType({
       args: {
         id: stringArg(),
       },
-      resolve(_root, args, { db }) {
-        return db.column.findUnique({
-          where: {
-            id: args.id!,
-          },
-          include: {
-            tasks: true,
-          },
+      resolve(_root, { id }, { db, token }) {
+        const userId = requireUser(token);
+        return db.column.findFirst({
+          where: { id: id ?? undefined, board: { authorId: userId } },
+          include: { tasks: { include: { subtasks: true } } },
         });
       },
     });
     t.list.nonNull.field("columns", {
       type: "Column",
-      resolve(_root, _args, { db }) {
-        return db.column.findMany({});
+      resolve(_root, _args, { db, token }) {
+        const userId = requireUser(token);
+        return db.column.findMany({
+          where: { board: { authorId: userId } },
+        });
       },
     });
   },
@@ -51,73 +57,32 @@ export const ColumnMutation = extendType({
         name: nonNull(stringArg()),
         color: nonNull(stringArg()),
       },
-      resolve(_, { boardId, name, color }, { db, token }) {
-        if (!token.userId) {
-          return "sign up or login";
-        } else {
-          return db.board.update({
-            where: {
-              id: boardId,
+      async resolve(_, { boardId, name, color }, { db, token }) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
+        return db.board.update({
+          where: { id: boardId! },
+          data: {
+            columns: {
+              create: { name, color },
             },
-            data: {
-              columns: {
-                create: {
-                  name: name,
-                  color: color,
-                },
-              },
-            },
-            include: {
-              columns: {
-                include: {
-                  tasks: true,
-                },
-              },
-            },
-          });
-        }
+          },
+          include: fullBoard,
+        });
       },
     });
-    // t.field("createColumn", {
-    //   type: "Column",
-    //   args: {
-    //     boardId: stringArg(),
-    //     name: nonNull(stringArg()),
-    //     color: nonNull(stringArg()),
-    //   },
-    //   resolve(_, { boardId, name, color }, { db, token }) {
-    //     if (!token.userId) {
-    //       return "sign up or login";
-    //     } else {
-    //       return db.column.create({
-    //         data: {
-    //           name: name,
-    //           color: color,
-    //           board: {
-    //             connect: {
-    //               id: boardId,
-    //             },
-    //           },
-    //         },
-    //         include: {
-    //           tasks: true,
-    //         },
-    //       });
-    //     }
-    //   },
-    // });
     t.field("updateColumn", {
       type: "Column",
       args: {
         columnId: nonNull(stringArg()),
         newName: nonNull(stringArg()),
       },
-      resolve(_, { columnId, newName }, { db }) {
+      async resolve(_, { columnId, newName }, { db, token }) {
+        const userId = requireUser(token);
+        await assertColumnOwner(db, columnId, userId);
         return db.column.update({
           where: { id: columnId },
-          data: {
-            name: newName,
-          },
+          data: { name: newName },
         });
       },
     });
@@ -127,29 +92,17 @@ export const ColumnMutation = extendType({
         boardId: stringArg(),
         columnId: stringArg(),
       },
-      resolve(_, { boardId, columnId }, { db }, __) {
+      async resolve(_, { boardId, columnId }, { db, token }) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
         return db.board.update({
-          where: {
-            id: boardId,
-          },
+          where: { id: boardId! },
           data: {
             columns: {
-              delete: {
-                id: columnId,
-              },
+              delete: { id: columnId! },
             },
           },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          include: fullBoard,
         });
       },
     });

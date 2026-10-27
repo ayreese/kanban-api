@@ -6,6 +6,8 @@ import {
   inputObjectType,
   list,
 } from "nexus";
+import { requireUser, assertBoardOwner } from "../utils/guards";
+import { fullBoard } from "./includes";
 
 export const Board = objectType({
   name: "Board",
@@ -36,41 +38,32 @@ export const BoardQuery = extendType({
       args: {
         id: stringArg(),
       },
-      resolve(_, { id }, { db }) {
-        return db.board.findUnique({
-          where: {
-            id: id!,
-          },
-          include: {
-            columns: true,
-          },
+      resolve(_, { id }, { db, token }) {
+        const userId = requireUser(token);
+        return db.board.findFirst({
+          where: { id: id ?? undefined, authorId: userId },
+          include: fullBoard,
         });
       },
     });
+    // Kept for schema compatibility; now returns only your own boards.
     t.list.nonNull.field("boards", {
       type: "Board",
-      resolve(_, __, { db }) {
-        return db.board.findMany({ include: { columns: true } });
+      resolve(_, __, { db, token }) {
+        const userId = requireUser(token);
+        return db.board.findMany({
+          where: { authorId: userId },
+          include: fullBoard,
+        });
       },
     });
     t.list.nonNull.field("userBoards", {
       type: "Board",
       resolve(_, __, { db, token }) {
+        const userId = requireUser(token);
         return db.board.findMany({
-          where: {
-            authorId: token.userId,
-          },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          where: { authorId: userId },
+          include: fullBoard,
         });
       },
     });
@@ -87,36 +80,21 @@ export const BoardMutation = extendType({
         columns: list(ColumnInputs),
       },
       resolve(_, { name, columns }, { db, token }) {
-        if (!token.userId) {
-          return "sign up or login";
-        } else {
-          return db.board.create({
-            data: {
-              name: name,
-              columns: {
-                createMany: {
-                  data: columns,
-                },
-              },
-              author: {
-                connect: {
-                  id: token.userId,
-                },
+        const userId = requireUser(token);
+        return db.board.create({
+          data: {
+            name: name ?? "Untitled board",
+            columns: {
+              createMany: {
+                data: (columns ?? [])
+                  .filter((c): c is NonNullable<typeof c> => !!c)
+                  .map((c) => ({ name: c.name ?? "", color: c.color ?? "" })),
               },
             },
-            include: {
-              columns: {
-                include: {
-                  tasks: {
-                    include: {
-                      subtasks: true,
-                    },
-                  },
-                },
-              },
-            },
-          });
-        }
+            author: { connect: { id: userId } },
+          },
+          include: fullBoard,
+        });
       },
     });
     t.field("updateBoard", {
@@ -126,21 +104,27 @@ export const BoardMutation = extendType({
         newName: nonNull(stringArg()),
         columns: list(ColumnInputs),
       },
-      resolve(_, { boardId, newName, columns }, { db }) {
-        const updateColumns: any = [];
-        const createColumns: any = [];
+      async resolve(_, { boardId, newName, columns }, { db, token }) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
 
-        const columnsToUpdate = columns?.forEach((column) => {
-          if (column?.id) {
-            const newObj = {
+        const updateColumns: any[] = [];
+        const createColumns: any[] = [];
+        columns?.forEach((column) => {
+          if (!column) return;
+          if (column.id) {
+            // Nested update is scoped to this board, so a column id from
+            // another board is rejected by Prisma.
+            updateColumns.push({
               where: { id: column.id },
-              data: {
-                name: column.name,
-                color: column.color,
-              },
-            };
-            updateColumns.push(newObj);
-          } else createColumns.push(column);
+              data: { name: column.name, color: column.color },
+            });
+          } else {
+            createColumns.push({
+              name: column.name ?? "",
+              color: column.color ?? "",
+            });
+          }
         });
 
         return db.board.update({
@@ -152,17 +136,7 @@ export const BoardMutation = extendType({
               update: updateColumns,
             },
           },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          include: fullBoard,
         });
       },
     });
@@ -171,7 +145,9 @@ export const BoardMutation = extendType({
       args: {
         boardId: nonNull(stringArg()),
       },
-      resolve(_, { boardId }, { db }) {
+      async resolve(_, { boardId }, { db, token }) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
         return db.board.delete({
           where: { id: boardId },
           include: { columns: true },

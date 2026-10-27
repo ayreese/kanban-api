@@ -7,6 +7,13 @@ import {
   inputObjectType,
 } from "nexus";
 import { StatusEnum } from "./Subtask";
+import {
+  requireUser,
+  assertBoardOwner,
+  assertColumnOwner,
+  assertTaskOwner,
+} from "../utils/guards";
+import { fullBoard, newSubtasks } from "./includes";
 
 export const Task = objectType({
   name: "Task",
@@ -38,18 +45,21 @@ export const TaskQuery = extendType({
       args: {
         id: nonNull(stringArg()),
       },
-      resolve(_root, args, { db }) {
-        return db.task.findUnique({
-          where: {
-            id: args.id,
-          },
+      resolve(_root, { id }, { db, token }) {
+        const userId = requireUser(token);
+        return db.task.findFirst({
+          where: { id, column: { board: { authorId: userId } } },
+          include: { subtasks: true },
         });
       },
     });
     t.list.nonNull.field("tasks", {
       type: "Task",
-      resolve(_root, _args, { db }) {
-        return db.task.findMany({});
+      resolve(_root, _args, { db, token }) {
+        const userId = requireUser(token);
+        return db.task.findMany({
+          where: { column: { board: { authorId: userId } } },
+        });
       },
     });
   },
@@ -67,49 +77,35 @@ export const TaskMutation = extendType({
         body: stringArg(),
         subtasks: list(SubtaskInputs),
       },
-      resolve(_, { boardId, columnId, name, body, subtasks }, { db, token }) {
-        if (!token.userId) {
-          return "sign up or login";
-        } else {
-          return db.board.update({
-            where: {
-              id: boardId,
-            },
-            data: {
-              columns: {
-                update: {
-                  where: {
-                    id: columnId,
-                  },
-                  data: {
-                    tasks: {
-                      create: {
-                        name: name,
-                        body: body,
-                        subtasks: {
-                          createMany: {
-                            data: subtasks,
-                          },
-                        },
+      async resolve(
+        _,
+        { boardId, columnId, name, body, subtasks },
+        { db, token },
+      ) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
+        return db.board.update({
+          where: { id: boardId! },
+          data: {
+            columns: {
+              update: {
+                where: { id: columnId! },
+                data: {
+                  tasks: {
+                    create: {
+                      name: name ?? "",
+                      body: body ?? "",
+                      subtasks: {
+                        createMany: { data: newSubtasks(subtasks) },
                       },
                     },
                   },
                 },
               },
             },
-            include: {
-              columns: {
-                include: {
-                  tasks: {
-                    include: {
-                      subtasks: true,
-                    },
-                  },
-                },
-              },
-            },
-          });
-        }
+          },
+          include: fullBoard,
+        });
       },
     });
     t.field("updateTask", {
@@ -125,52 +121,43 @@ export const TaskMutation = extendType({
       async resolve(
         _,
         { boardId, columnId, taskId, name, body, subtasks },
-        { db },
+        { db, token },
       ) {
-        const updateSubtasks: any = [];
-        const createSubtasks: any = [];
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
+        // The task and its destination column must both be on this board.
+        await assertTaskOwner(db, taskId, userId, boardId);
+        await assertColumnOwner(db, columnId, userId, boardId);
 
-        const subtasksToUpdate = subtasks?.map((subtask) => {
+        const updateSubtasks: any[] = [];
+        subtasks?.forEach((subtask) => {
           if (subtask?.id) {
-            const newObj = {
+            updateSubtasks.push({
               where: { id: subtask.id },
-              data: {
-                body: subtask.body,
-                // status: subtask.status,
-              },
-            };
-            updateSubtasks.push(newObj);
-          } else createSubtasks.push(subtask);
+              data: { body: subtask.body },
+            });
+          }
         });
+        const createSubtasks = newSubtasks(subtasks?.filter((s) => !s?.id));
+
+        // Move the task to the chosen column (status change in the UI).
         await db.column.update({
-          where: {
-            id: columnId,
-          },
-          data: {
-            tasks: {
-              connect: {
-                id: taskId,
-              },
-            },
-          },
+          where: { id: columnId! },
+          data: { tasks: { connect: { id: taskId! } } },
         });
-        return await db.board.update({
-          where: { id: boardId },
+        return db.board.update({
+          where: { id: boardId! },
           data: {
             columns: {
               update: {
-                where: {
-                  id: columnId,
-                },
+                where: { id: columnId! },
                 data: {
                   tasks: {
                     update: {
-                      where: {
-                        id: taskId,
-                      },
+                      where: { id: taskId! },
                       data: {
-                        name: name,
-                        body: body,
+                        name: name ?? undefined,
+                        body: body ?? undefined,
                         subtasks: {
                           create: createSubtasks,
                           update: updateSubtasks,
@@ -182,17 +169,7 @@ export const TaskMutation = extendType({
               },
             },
           },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          include: fullBoard,
         });
       },
     });
@@ -204,36 +181,22 @@ export const TaskMutation = extendType({
         columnId: stringArg(),
         taskId: nonNull(stringArg()),
       },
-      resolve(_, { boardId, columnId, taskId }, { db }) {
+      async resolve(_, { boardId, columnId, taskId }, { db, token }) {
+        const userId = requireUser(token);
+        await assertBoardOwner(db, boardId, userId);
         return db.board.update({
-          where: { id: boardId },
+          where: { id: boardId! },
           data: {
             columns: {
               update: {
-                where: {
-                  id: columnId,
-                },
+                where: { id: columnId! },
                 data: {
-                  tasks: {
-                    delete: {
-                      id: taskId,
-                    },
-                  },
+                  tasks: { delete: { id: taskId } },
                 },
               },
             },
           },
-          include: {
-            columns: {
-              include: {
-                tasks: {
-                  include: {
-                    subtasks: true,
-                  },
-                },
-              },
-            },
-          },
+          include: fullBoard,
         });
       },
     });
